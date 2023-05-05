@@ -3,9 +3,9 @@
 {
   'use strict';
 
-const select = {
-  templateOf: {
-    menuProduct: "#template-menu-product",
+  const select = {
+    templateOf: {
+      menuProduct: "#template-menu-product",
     },
     containerOf: {
       menu: '#product-list',
@@ -53,7 +53,7 @@ const select = {
   };
 
   class Product {
-    constructor(id, data){
+    constructor(id, data) {
       const thisProduct = this;
       thisProduct.id = id;
       thisProduct.data = data;
@@ -64,16 +64,16 @@ const select = {
       thisProduct.processOrder();
       console.log('new Product:', thisProduct);
     }
-    renderInMenu(){
+    renderInMenu() {
       const thisProduct = this;
       const generatedHTML = templates.menuProduct(thisProduct.data); //generate HTML based on template
       thisProduct.element = utils.createDOMFromHTML(generatedHTML);//create element using utils.create.ElementFromHTML
       const menuContainer = document.querySelector(select.containerOf.menu);// find menu container
       menuContainer.appendChild(thisProduct.element);// add element to menu
     }
-    getElements(){
+    getElements() {
       const thisProduct = this;
-    
+
       thisProduct.accordionTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
       thisProduct.form = thisProduct.element.querySelector(select.menuProduct.form);
       thisProduct.formInputs = thisProduct.form.querySelectorAll(select.all.formInputs);
@@ -81,130 +81,128 @@ const select = {
       thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
       thisProduct.imageWrapper = thisProduct.element.querySelector(select.menuProduct.imageWrapper);
     }
-    initAccordion(){
+    initAccordion() {
       const thisProduct = this;
 
-    /* find the clickable trigger (the element that should react to clicking) */
-    //const clickableTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
+      /* find the clickable trigger (the element that should react to clicking) */
+      //const clickableTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
 
-    /* START: add event listener to clickable trigger on event click */
-    thisProduct.accordionTrigger.addEventListener('click', function(event) {
+      /* START: add event listener to clickable trigger on event click */
+      thisProduct.accordionTrigger.addEventListener('click', function (event) {
 
-      /* prevent default action for event */
-      event.preventDefault();
-      /* find active product (product that has active class) */
-      const activeProduct = document.querySelector(select.all.menuProductsActive);
+        /* prevent default action for event */
+        event.preventDefault();
+        /* find active product (product that has active class) */
+        const activeProduct = document.querySelector(select.all.menuProductsActive);
 
-      /* if there is active product and it's not thisProduct.element, remove class active from it */
-      if (activeProduct !== thisProduct.element && activeProduct !== null) {
-        activeProduct.classList.toggle('active');
+        /* if there is active product and it's not thisProduct.element, remove class active from it */
+        if (activeProduct !== thisProduct.element && activeProduct !== null) {
+          activeProduct.classList.toggle('active');
+        }
+
+        /* toggle active class on thisProduct.element */
+        thisProduct.element.classList.toggle('active');
+
+      });
+    }
+    initOrderForm() {
+      const thisProduct = this;
+      console.log('initOrderForm');
+
+      thisProduct.form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        thisProduct.processOrder();
+      });
+
+      for (let input of thisProduct.formInputs) {
+        input.addEventListener('change', function () {
+          thisProduct.processOrder();
+        });
       }
 
-      /* toggle active class on thisProduct.element */
-      thisProduct.element.classList.toggle('active');
-
-    });
-  }
-  initOrderForm(){
-    const thisProduct = this;
-    console.log('initOrderForm');
-    
-    thisProduct.form.addEventListener('submit', function(event){
-      event.preventDefault();
-      thisProduct.processOrder();
-    });
-    
-    for(let input of thisProduct.formInputs){
-      input.addEventListener('change', function(){
+      thisProduct.cartButton.addEventListener('click', function (event) {
+        event.preventDefault();
         thisProduct.processOrder();
       });
     }
-    
-    thisProduct.cartButton.addEventListener('click', function(event){
-      event.preventDefault();
-      thisProduct.processOrder();
-    });
-  }
-  processOrder(){
-    const thisProduct = this;
+    processOrder() {
+      const thisProduct = this;
 
-    // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
-    const formData = utils.serializeFormToObject(thisProduct.form);
-    console.log('formData', formData);
-  
-    // set price to default price
-    let price = thisProduct.data.price;
-  
-  
-    // for every category (param)...
-    for(let paramId in thisProduct.data.params) {
-      // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
-      const param = thisProduct.data.params[paramId];
-      console.log(paramId, param);
+      // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      console.log('formData', formData);
 
-      for (let optionId in param.options) {
-        
-        const option = param.options[optionId];
+      // set price to default price
+      let price = thisProduct.data.price;
 
-      if (formData[paramId] && formData[paramId].includes(optionId)) {
 
-        if (!option.default) {
-          price += option.price;
-        }
-      }
+      // for every category (param)...
+      for (let paramId in thisProduct.data.params) {
+        // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
+        const param = thisProduct.data.params[paramId];
+        console.log(paramId, param);
 
-      else {
+        for (let optionId in param.options) {
 
-        if (option.default) {
-          price -= option.price;
-        }
-      }
+          const option = param.options[optionId];
+          const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
 
-      if (formData[paramId] && formData[paramId].includes(optionId)) {
-        const optionImage = thisProduct.imageWrapper.querySelector(`.${paramId}-${optionId}`);
-        const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
+          if (optionSelected) {
 
-        if(optionImage) {
-          if(optionSelected) {
-            optionImage.classList.add(classNames.menuProduct.imageVisible);
+            if (!option.default) {
+              price += option.price;
+            }
           }
+
           else {
-            optionImage.classList.remove(classNames.menuProduct.imageVisible);
+
+            if (option.default) {
+              price -= option.price;
+            }
+          }
+
+          const optionImage = thisProduct.imageWrapper.querySelector(`.${paramId}-${optionId}`);
+          
+
+          if (optionImage) {
+            if (optionSelected) {
+              optionImage.classList.add(classNames.menuProduct.imageVisible);
+            }
+            else {
+              optionImage.classList.remove(classNames.menuProduct.imageVisible);
+            }
+          }
+
+          // for every option in this category
+          for (let optionId in param.options) {
+            // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+            const option = param.options[optionId];
+            console.log(optionId, option);
           }
         }
 
-      }
-
-      // for every option in this category
-      for(let optionId in param.options) {
-        // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
-        const option = param.options[optionId];
-        console.log(optionId, option);
+        // update calculated price in the HTML
+        thisProduct.priceElem.innerHTML = price;
       }
     }
-  
-    // update calculated price in the HTML
-    thisProduct.priceElem.innerHTML = price;
-  }
-  }
 
   }
 
 
 
   const app = {
-    initMenu: function(){
+    initMenu: function () {
       const thisApp = this;
       console.log('thisApp.data:', thisApp.Data);
-      for(let productData in thisApp.data.products){
+      for (let productData in thisApp.data.products) {
         new Product(productData, thisApp.data.products[productData]);
       }
     },
-    initData: function(){
+    initData: function () {
       const thisApp = this;
       thisApp.data = dataSource;
     },
-    init: function(){
+    init: function () {
       const thisApp = this;
       console.log('*** App starting ***');
       console.log('thisApp:', thisApp);
@@ -215,6 +213,6 @@ const select = {
       thisApp.initMenu();
     },
   };
-  
+
   app.init();
 }

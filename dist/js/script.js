@@ -179,6 +179,8 @@ const templates = {
         for (let optionId in param.options) {
 
           const option = param.options[optionId];
+          console.log(optionId, option);
+          
           const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
 
           if (optionSelected) {
@@ -186,45 +188,31 @@ const templates = {
             if (!option.default) {
               price += option.price;
             }
-          }
-
-          else {
+          } else {
 
             if (option.default) {
               price -= option.price;
             }
-          }
+          } 
 
-          const optionImage = thisProduct.imageWrapper.querySelector(`.${paramId}-${optionId}`);
-          
+          const optionImage = thisProduct.imageWrapper.querySelector('.' + paramId + '-' + optionId);
 
-          if (optionImage) {
-            if (optionSelected) {
+          if(optionImage){
+            if(optionSelected){
               optionImage.classList.add(classNames.menuProduct.imageVisible);
-            }
-            else {
+            } else {
               optionImage.classList.remove(classNames.menuProduct.imageVisible);
             }
-          }
-
-          // for every option in this category
-          for (let optionId in param.options) {
-            // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
-          
-            //console.log(optionId, option);
-          }
+          }    
         }
-
-        /* multiply price by amount */
-
-        price *= thisProduct.amountWidget.value;
-
-        // update calculated price in the HTML
-        thisProduct.priceSingle = price;
-        thisProduct.priceElem.innerHTML = price;
-        thisProduct.price = price;
-
       }
+      thisProduct.priceSingle = price;
+
+      /* multiply price by amount */
+      price *= thisProduct.amountWidget.value;
+
+      // update calculated price in the HTML
+      thisProduct.priceElem.innerHTML = price;
     }
     initAmountWidget(){
       const thisProduct = this;
@@ -248,7 +236,7 @@ const templates = {
         name: thisProduct.data.name,
         amount: thisProduct.amountWidget.value,
         priceSingle: thisProduct.priceSingle,
-        price: thisProduct.price,
+        price: thisProduct.priceSingle * thisProduct.amountWidget.value,
         params: thisProduct.prepareCartProductParams(),
       };
       return productSummary;
@@ -384,6 +372,7 @@ class Cart {
     thisCart.dom.productList.appendChild(generatedDOM);
     thisCart.products.push(new CartProduct(menuProduct, generatedDOM));
     thisCart.update();
+
     //console.log('ThisCart.products', thisCart.products);
  
     }
@@ -425,6 +414,7 @@ class Cart {
   class CartProduct {
     constructor(menuProduct, element) {
       const thisCartProduct = this;
+      console.log(menuProduct);
 
       thisCartProduct.id = menuProduct.id,
       thisCartProduct.name = menuProduct.name,
@@ -479,11 +469,11 @@ class Cart {
     },
     init: function () {
       const thisApp = this;
-      console.log('*** App starting ***');
-      console.log('thisApp:', thisApp);
-      console.log('classNames:', classNames);
-      console.log('settings:', settings);
-      console.log('templates:', templates);
+      //console.log('*** App starting ***');
+      //console.log('thisApp:', thisApp);
+      //console.log('classNames:', classNames);
+      //console.log('settings:', settings);
+      //console.log('templates:', templates);
       thisApp.initData();
       thisApp.initMenu();
       thisApp.initCart();
